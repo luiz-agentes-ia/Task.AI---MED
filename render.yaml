@@ -1,0 +1,10 @@
+
+services:
+  - type: static
+    name: copilot-ai-med
+    env: static
+    buildCommand: "echo 'Skip build'"
+    staticPublishDir: "."
+    envVars:
+      - key: API_KEY
+        sync: false # Você precisará definir o valor da sua API_KEY manualmente no painel do Render por segurança

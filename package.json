@@ -5,8 +5,8 @@
   "private": true,
   "description": "Copiloto de Gestão e Crescimento para clínicas médicas",
   "scripts": {
-    "start": "npx serve .",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build needed'",
+    "start": "npx serve ."
   },
   "keywords": [],
   "author": "",
