@@ -119,7 +119,7 @@ const Automation: React.FC = () => {
                   <label className="text-sm font-bold text-navy block mb-3 uppercase tracking-wider text-[11px]">Quando a IA deve atuar?</label>
                   <select className="w-full p-3 bg-slate-900 text-white rounded-xl text-sm focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer">
                     <option>Apenas fora do horário comercial</option>
-                    <option>Quando a secretária demorar > 10 min</option>
+                    <option>Quando a secretária demorar &gt; 10 min</option>
                     <option>24 horas por dia (Híbrido)</option>
                     <option>Pausada (Somente manual)</option>
                   </select>
