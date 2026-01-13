@@ -435,7 +435,7 @@ const Financial: React.FC = () => {
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} dy={10} />
                     <YAxis hide />
                     <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} />
-                    <Area type="monotone" dataKey="saldo" stroke={({payload}: any) => payload?.type === 'real' ? '#0f172a' : '#60a5fa'} strokeWidth={3} fillOpacity={1} fill="url(#colorReal)" />
+                    <Area type="monotone" dataKey="saldo" stroke="#0f172a" strokeWidth={3} fillOpacity={1} fill="url(#colorReal)" />
                     <Line type="monotone" dataKey="entrada" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
                     <Line type="monotone" dataKey="saida" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} />
                   </AreaChart>

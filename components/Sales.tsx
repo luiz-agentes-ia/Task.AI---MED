@@ -28,7 +28,7 @@ import {
   HandCoins,
   Receipt,
   History,
-  TrendingUpDown,
+  ArrowUpDown,
   ShoppingBag,
   Flame,
   ArrowDownRight,
@@ -275,7 +275,7 @@ const Sales: React.FC<SalesProps> = ({ globalMetrics, onUpdateMetric }) => {
 
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between group hover:border-indigo-500 transition-all">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg"><TrendingUpDown size={18} /></div>
+                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg"><ArrowUpDown size={18} /></div>
                 <span className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Taxa de CDC (%)</span>
               </div>
               <div><p className="text-2xl font-bold text-navy tracking-tight">{stats.taxaCDCPct.toFixed(1)}%</p><p className="text-[9px] text-indigo-600 mt-2 font-medium uppercase italic tracking-wider">Leads x Agendamentos</p></div>
