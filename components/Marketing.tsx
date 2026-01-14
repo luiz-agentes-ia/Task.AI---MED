@@ -23,7 +23,10 @@ import {
   TrendingDown,
   Percent,
   Layers,
-  BarChart
+  BarChart,
+  Table2,
+  Search,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -86,10 +89,32 @@ const Marketing: React.FC = () => {
     const metaSpend = meta.reduce((a, b) => a + b.spend, 0);
     const metaLeads = meta.reduce((a, b) => a + b.leads, 0);
 
-    return {
-      google: { spend: googleSpend, leads: Math.round(googleLeads), cac: googleLeads > 0 ? googleSpend / googleLeads : 0, roi: 3.8, convRate: 8.5 },
-      meta: { spend: metaSpend, leads: Math.round(metaLeads), cac: metaLeads > 0 ? metaSpend / metaLeads : 0, roi: 2.9, convRate: 11.2 }
-    };
+    // Dados simulados de qualidade
+    const googleQualifiedRate = 0.42; // 42%
+    const metaQualifiedRate = 0.28;   // 28%
+
+    return [
+      {
+        id: 'google',
+        name: 'Google Ads',
+        icon: <GoogleIcon />,
+        spend: googleSpend,
+        leads: Math.round(googleLeads),
+        qualifiedLeads: Math.round(googleLeads * googleQualifiedRate),
+        qualifiedRate: googleQualifiedRate * 100,
+        cpl: googleLeads > 0 ? googleSpend / googleLeads : 0,
+      },
+      {
+        id: 'meta',
+        name: 'Meta Ads',
+        icon: <Instagram size={16} className="text-pink-600" />,
+        spend: metaSpend,
+        leads: Math.round(metaLeads),
+        qualifiedLeads: Math.round(metaLeads * metaQualifiedRate),
+        qualifiedRate: metaQualifiedRate * 100,
+        cpl: metaLeads > 0 ? metaSpend / metaLeads : 0,
+      }
+    ];
   }, [mockMarketingData.allCampaigns]);
 
   useEffect(() => {
@@ -125,6 +150,21 @@ const Marketing: React.FC = () => {
     cpl: mockMarketingData.cpl,
     campaigns: mockMarketingData.campaigns
   };
+
+  const tableData = isConnected && realInsights.length > 0 
+    ? realInsights.map((d, i) => ({
+        name: `Campanha Meta ${i + 1}`,
+        platform: 'meta',
+        spend: d.spend,
+        leads: d.conversions,
+        clicks: d.clicks,
+        impressions: d.impressions
+      }))
+    : mockMarketingData.allCampaigns;
+
+  const filteredChannelStats = platformFilter === 'all' 
+    ? channelStats 
+    : channelStats.filter(c => c.id === platformFilter);
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500 pb-20">
@@ -204,27 +244,89 @@ const Marketing: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm">
-              <div className="flex justify-between items-center mb-10">
-                <div>
-                  <h3 className="text-[10px] font-bold text-navy uppercase tracking-widest">Investimento por Campanha</h3>
-                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mt-1">Análise de Performance Individual</p>
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm">
+                <div className="flex justify-between items-center mb-10">
+                  <div>
+                    <h3 className="text-[10px] font-bold text-navy uppercase tracking-widest">Investimento por Campanha</h3>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mt-1">Análise de Performance Individual</p>
+                  </div>
+                </div>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart data={activeStats.campaigns}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 400, fill: '#94a3b8' }} dy={10} hide={window.innerWidth < 768} />
+                      <YAxis hide />
+                      <Tooltip cursor={{ fill: '#f8fafc', radius: 8 }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }} />
+                      <Bar dataKey="spend" radius={[6, 6, 0, 0]} barSize={40}>
+                        {activeStats.campaigns.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#0f172a' : '#3b82f6'} />
+                        ))}
+                      </Bar>
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsBarChart data={activeStats.campaigns}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 400, fill: '#94a3b8' }} dy={10} hide={window.innerWidth < 768} />
-                    <YAxis hide />
-                    <Tooltip cursor={{ fill: '#f8fafc', radius: 8 }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }} />
-                    <Bar dataKey="spend" radius={[6, 6, 0, 0]} barSize={40}>
-                      {activeStats.campaigns.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#0f172a' : '#3b82f6'} />
-                      ))}
-                    </Bar>
-                  </RechartsBarChart>
-                </ResponsiveContainer>
+              
+              {/* TABELA DE ORIGEM DE TRÁFEGO */}
+              <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+                <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                   <h3 className="font-black text-navy uppercase text-xs tracking-[0.2em]">Performance por Origem de Tráfego</h3>
+                   <div className="flex bg-white p-1 rounded-xl border border-slate-200">
+                      <button 
+                         onClick={() => setPlatformFilter('all')}
+                         className={`px-3 py-1 text-[9px] font-bold uppercase rounded-lg transition-all ${platformFilter === 'all' ? 'bg-navy text-white shadow-sm' : 'text-slate-400 hover:text-navy'}`}
+                      >
+                         Todos
+                      </button>
+                      <button 
+                         onClick={() => setPlatformFilter('google')}
+                         className={`px-3 py-1 text-[9px] font-bold uppercase rounded-lg transition-all ${platformFilter === 'google' ? 'bg-navy text-white shadow-sm' : 'text-slate-400 hover:text-navy'}`}
+                      >
+                         Google
+                      </button>
+                      <button 
+                         onClick={() => setPlatformFilter('meta')}
+                         className={`px-3 py-1 text-[9px] font-bold uppercase rounded-lg transition-all ${platformFilter === 'meta' ? 'bg-navy text-white shadow-sm' : 'text-slate-400 hover:text-navy'}`}
+                      >
+                         Meta
+                      </button>
+                   </div>
+                </div>
+                <div className="overflow-x-auto">
+                   <table className="w-full text-left">
+                      <thead className="bg-slate-50/30">
+                         <tr>
+                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Canal</th>
+                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Investimento</th>
+                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Leads Totais</th>
+                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Leads Qual.</th>
+                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Taxa Qual.</th>
+                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">CPL</th>
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                         {filteredChannelStats.map((channel) => (
+                            <tr key={channel.id} className="hover:bg-slate-50 transition-colors group">
+                               <td className="px-8 py-5 flex items-center gap-3">
+                                  <div className="p-2 bg-slate-100 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">{channel.icon}</div>
+                                  <span className="text-xs font-bold text-navy">{channel.name}</span>
+                               </td>
+                               <td className="px-8 py-5 text-right text-xs font-medium text-slate-600">R$ {channel.spend.toLocaleString()}</td>
+                               <td className="px-8 py-5 text-right text-xs font-bold text-navy">{channel.leads}</td>
+                               <td className="px-8 py-5 text-right">
+                                  <span className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100">
+                                     {channel.qualifiedLeads}
+                                  </span>
+                               </td>
+                               <td className="px-8 py-5 text-right text-xs font-bold text-navy">{channel.qualifiedRate.toFixed(1)}%</td>
+                               <td className="px-8 py-5 text-right text-xs font-bold text-indigo-600">R$ {channel.cpl.toFixed(2)}</td>
+                            </tr>
+                         ))}
+                      </tbody>
+                   </table>
+                </div>
               </div>
             </div>
 
@@ -264,6 +366,57 @@ const Marketing: React.FC = () => {
                   </div>
                </div>
             </div>
+          </div>
+
+          <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-700">
+             <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                 <h3 className="font-black text-navy uppercase text-xs tracking-[0.2em]">Detalhamento de Campanhas</h3>
+                 <button className="text-slate-400 hover:text-navy transition-colors">
+                     <Filter size={16} />
+                 </button>
+             </div>
+             <div className="overflow-x-auto">
+                 <table className="w-full text-left">
+                     <thead className="bg-slate-50/50 border-b border-slate-100">
+                         <tr>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Campanha</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Plataforma</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Impr.</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Cliques</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">CTR</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">CPC</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Inv.</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Leads</th>
+                             <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">CPL</th>
+                         </tr>
+                     </thead>
+                     <tbody className="divide-y divide-slate-100">
+                         {tableData.map((camp, i) => {
+                             const ctr = camp.impressions > 0 ? (camp.clicks / camp.impressions) * 100 : 0;
+                             const cpc = camp.clicks > 0 ? camp.spend / camp.clicks : 0;
+                             const cpl = camp.leads > 0 ? camp.spend / camp.leads : 0;
+
+                             return (
+                                 <tr key={i} className="hover:bg-slate-50 transition-colors group">
+                                     <td className="px-6 py-4">
+                                         <p className="text-xs font-bold text-navy">{camp.name}</p>
+                                     </td>
+                                     <td className="px-6 py-4 text-center">
+                                         {camp.platform === 'meta' ? <Instagram size={14} className="mx-auto text-pink-600" /> : <GoogleIcon size={14} />}
+                                     </td>
+                                     <td className="px-6 py-4 text-right text-xs text-slate-600">{camp.impressions.toLocaleString()}</td>
+                                     <td className="px-6 py-4 text-right text-xs text-slate-600">{camp.clicks.toLocaleString()}</td>
+                                     <td className="px-6 py-4 text-right text-xs text-slate-600">{ctr.toFixed(2)}%</td>
+                                     <td className="px-6 py-4 text-right text-xs text-slate-600">R$ {cpc.toFixed(2)}</td>
+                                     <td className="px-6 py-4 text-right text-xs font-bold text-navy">R$ {camp.spend.toLocaleString()}</td>
+                                     <td className="px-6 py-4 text-right text-xs font-bold text-navy">{camp.leads}</td>
+                                     <td className="px-6 py-4 text-right text-xs font-bold text-emerald-600">R$ {cpl.toFixed(2)}</td>
+                                 </tr>
+                             )
+                         })}
+                     </tbody>
+                 </table>
+             </div>
           </div>
         </>
       )}
